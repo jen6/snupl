@@ -3,9 +3,9 @@ type tree = LEAF of item
             | NODE of tree list
 type zipper = TOP
             | HAND of tree list * zipper * tree list 
-type location = LOC of tree * zipper ;;
+type location = LOC of tree * zipper 
 
-exception NOMOVE of string;;
+exception NOMOVE of string
 
 let goLeft loc = 
     match loc with
@@ -22,10 +22,13 @@ let goRight loc =
 let goUp loc =
     match loc with
     LOC(t, TOP) -> raise (NOMOVE "top of top") 
-    | LOC(t, HAND(left, up, right)) -> LOC(left::t::right, up) ;;
+    | LOC(t, HAND(left, up, right)) -> 
+            LOC(NODE(List.rev_append left (t::right)), up) ;;
 
 let goDown loc =
     match loc with
-    LOC(t::[], _) -> raise (NOMOVE "down of down")
-    | LOC(t::left::[], up) -> LOC(t, HAND(left, up, []))
-    | LOC(t::left::right, up) -> LOC(t, HAND(left, up, right)) ;;
+    LOC(NODE treeList, zip) ->
+        (match treeList with
+        [] ->raise (NOMOVE "down of empty")
+        | hd::tl -> LOC(hd, HAND([], zip, tl)))
+    |LOC(LEAF _, _) -> raise (NOMOVE "down of down")
